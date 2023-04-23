@@ -1,315 +1,274 @@
 
-use log::{info, warn};
+use log::info;
 
-pub fn get_home_dir() -> String {
-    let home_path = std::env::var("HOME").expect("unable to get home (~) directory, from $HOME env"); 
-    home_path
-}
-// checks if ~/.conman exists creates if not 
-fn ensure_cache_exists() {
-    if std::path::Path::new(&(get_home_dir() + "/.conman")).exists() {
-        log::info!("existing ~/.conman/ found");
-        return;
-    } else {
-        log::info!("creating ~/.conman/");
-        std::fs::create_dir_all(get_home_dir() + "/.conman").unwrap();
-    }
+mod startup;
 
-}
+mod repo;
+use repo::Repository;
 
-pub fn setup_fs() {
-    // initialise needed directories
-    ensure_cache_exists();
+fn add_command(repo : &mut Repository, program_name : String, config_name : Option<String>, file : Option<String>) {
     
-}
-
-#[derive(Clone, PartialEq)]
-struct ConfigFile {
-    file_name : String,
-    destination_path : String,
-}
-
-impl ConfigFile {
-    pub fn new(relitive_file_path : String) -> Option<Self> {
-        let mut current_directory = std::env::current_dir().unwrap();
-
-        current_directory.push(relitive_file_path);
-
-        if current_directory.exists() {
-            Some(ConfigFile { 
-                file_name: current_directory.as_path().file_name()?.to_str().unwrap().to_string(), 
-                destination_path: current_directory.as_path().to_str().unwrap().to_string() 
-            })
-        } else {
-            None
-        }
-    }
-}
-
-// ~/.conman/programs/PROGRAM_NAME/NAME
-#[derive(Clone, PartialEq)]
-struct Config {
-    pub name : String,
-    program_name : String,
-    managed_files : Vec<ConfigFile>,
-}
-
-impl Config {
-    pub fn new(program_name_init : String, name_init : String) -> Self {
-        Config {
-            name : name_init, 
-            program_name : program_name_init,
-            managed_files : Vec::new()
+    if file.is_some() {  
+        if std::path::Path::new(&file.clone().unwrap()).exists() == false {
+            println!("provided file does not exist!");
+            std::process::exit(0);
         }
     }
 
-    pub fn get_directory_path(&self) -> String {
-        String::from(get_home_dir() + "/.conman/programs/" + &self.program_name + "/" + &self.name + "/") 
-    }
+    let mut config_name_found_in_repository : bool = false;
+    let mut program_name_found_in_repository : bool = false;
+    for p in &repo.managed_programs.clone() { 
+        if program_name == p.name {
+            program_name_found_in_repository = true;
 
-    pub fn does_manifest_exist(&self) -> bool {
-        let manifest_path = get_home_dir() + "/.conman/programs/" + &self.program_name + "/" + &self.name + "/conman.json";
-
-        if std::path::Path::new(&manifest_path).exists() {
-            info!("config: {} for program: {} contains a manifest file", self.name, self.program_name);
-            return true;
-        }
-        
-        warn!("config: {} for program: {} missing manifest conman.json", self.name, self.program_name);
-
-        false
-    }
-
-    pub fn directory_exists(&self) -> bool {
-        std::path::Path::new(&self.get_directory_path()).exists()
-    }
-}
-
-// ~/.conman/programs/NAME 
-#[derive(Clone, PartialEq)]
-struct Program {
-    pub name : String,
-    conifigurations : Vec<Config>,
-}
-
-impl Program {
-    pub fn new(name_init : String) -> Self {
-        Program { name: name_init, conifigurations: Vec::new() }
-    }
-    
-    pub fn does_manifest_exist(&self) -> bool {
-        let manifest_path = get_home_dir() + "/.conman/programs/" + &self.name + "/conman.json";
-
-        if std::path::Path::new(&manifest_path).exists() {
-            info!("progrm: {} contains a manifest file", self.name);
-            return true;
-        }
-        
-        warn!("program: {} missing manifest conman.json", self.name);
-
-        false
-    }
-
-    pub fn get_directory_path(&self) -> String {
-        String::from(get_home_dir() + "/.conman/programs/" + self.name.as_str() + "/")
-    }
-
-    pub fn directory_exists(&self) -> bool {
-        std::path::Path::new(&self.get_directory_path()).exists()
-    }
-}
-
-fn get_managed_programs() -> Result<Vec<Program>, ()> {
-    info!("looking for programs in ~/.conman/programs/");
-    let mut result : Vec<Program> = Vec::new();
-    let programs_names = std::fs::read_dir(get_home_dir() + "/.conman/programs/").unwrap();
-    
-    for current_program_name in programs_names {
-        
-        let curr_result = result.len();
-        
-        if current_program_name.as_ref().unwrap().path().is_dir() {
-            let program_name = String::from(current_program_name.as_ref().unwrap().path().file_name().unwrap().to_str().unwrap());
-            
-            result.push(Program::new(program_name.clone()));
-                
-            result[curr_result].does_manifest_exist();
-
-            info!("found program {} in ~/.conman/programs/ full path: {}", program_name, result[curr_result].get_directory_path()); 
-            
-            let configs = std::fs::read_dir(String::from(current_program_name.as_ref().unwrap().path().to_str().unwrap())).unwrap();
-            for current_config in configs {
-                // exlucde files only dirs
-                if current_config.as_ref().unwrap().path().is_dir() {
-                    let current_config_of_program = result[curr_result].conifigurations.len();
-
-                    result[curr_result].conifigurations.push(Config::new(program_name.clone(), String::from(current_config.as_ref().unwrap().path().file_name().unwrap().to_str().unwrap())));          
-                    
-                    result[curr_result].conifigurations[current_config_of_program].does_manifest_exist();
-
-                    info!("found configuration for {} called {} full path: {}",  
-                        result[curr_result].name, 
-                        String::from(current_config.as_ref().unwrap().path().file_name().unwrap().to_str().unwrap()),
-                        result[curr_result].conifigurations[current_config_of_program].get_directory_path()
-                    );
+            if config_name.is_some() {
+                for c in &p.conifigurations { 
+                    if config_name.clone().unwrap() == c.name {
+                        config_name_found_in_repository = true;
+                    }
                 }
             }
         }
     }
-    Ok(result)
+    if program_name_found_in_repository == false {
+        println!("creating program: {}", program_name.clone());
+        repo.new_program(program_name.clone()); 
+    }
+
+    if config_name_found_in_repository == false && config_name.is_some() {
+        println!("creating config: {}", config_name.clone().unwrap());
+        repo.new_config(&program_name, config_name.clone().unwrap()); 
+    }
+
+    if file.is_some() && file.is_some() {
+        println!("adding file: {}", file.clone().unwrap());
+        repo.new_file(program_name, config_name.unwrap(), file.clone().unwrap());
+    }
+   
 }
 
-fn add_command(program : Program, config : Option<Config>, file : Option<ConfigFile>) {
-    if program.directory_exists() {
-        if config.is_none() && file.is_none() {
-            
-            println!("program: {} is already managed by conman", program.name); 
-        
-        } else if config.is_some() && file.is_none() {
-            
-            if config.as_ref().unwrap().directory_exists() {
-                println!("the config directory {} already exists for {}", config.unwrap().name, program.name);
-            } else {
-                println!("new config to manage: {} for {}", config.as_ref().unwrap().name, program.name);
-                std::fs::create_dir(std::path::Path::new(&config.unwrap().get_directory_path())).expect("Unable to create new config");
-            }
-        } else if config.is_some() && file.is_some() {
-            if !config.as_ref().unwrap().directory_exists() {
-                println!("config {} does not exist for program {}", config.unwrap().name, program.name);
-            } 
-            todo!("need to implement a file being added to config");
+fn rm_command(repo : &mut Repository, program_name : String, config_name : Option<String>, file : Option<String>) {
+    if file.is_some() {  
+        let string_path_to_repo = repo.root.clone() + "programs/" + &program_name.clone() + "/" + &config_name.clone().unwrap() + "/" + &file.clone().unwrap();
+        let file_path_in_repo = std::path::Path::new(&(string_path_to_repo));
+        if file_path_in_repo.exists() == false {
+            println!("provided file does not exist!");
+            std::process::exit(0);
+        } else {
+            println!("removing file: {}", file.clone().unwrap());
+            repo.rm_file(program_name, config_name.unwrap(), file.unwrap());
+            return;
         }
-    } else {
-        if config.is_none() && file.is_none() {
-            println!("new program to manage: {}", program.name);
-            std::fs::create_dir(std::path::Path::new(&program.get_directory_path())).expect("Unable to create new program");
-        } else if config.is_some() && file.is_none() || config.is_some() && file.is_some()  {
-            println!("the program {} does not exist!", program.name);
-        } 
     }
-}
 
-fn rm_command(program : Program, config : Option<Config>, file : Option<ConfigFile>) {
-    if program.directory_exists() {
-        if config.is_none() && file.is_none() {
-            println!("deleting program {}", program.name);
-            std::fs::remove_dir_all(program.get_directory_path()).expect("unable to remove program");
-        } else if config.is_some() && file.is_none() {
-            if config.as_ref().unwrap().directory_exists() {
-                println!("deleting config {} for program {}", config.as_ref().unwrap().name, program.name);
-                std::fs::remove_dir_all(config.as_ref().unwrap().get_directory_path()).unwrap();
-            } else {
-                println!("cannot delete config {} as it does not exist!", config.as_ref().unwrap().name);
+    let mut program_name_found_in_repository : bool = false;
+    for p in &repo.managed_programs.clone() { 
+        if program_name == p.name {
+            program_name_found_in_repository = true;
+
+            if config_name.is_some() {
+                let mut config_name_found_in_repository : bool = false;
+                for c in &p.conifigurations { 
+                    if config_name.clone().unwrap() == c.name {
+                        config_name_found_in_repository = true;
+                    }
+                }
+                if config_name_found_in_repository == true {
+                    repo.rm_config(program_name.clone(), config_name.clone().unwrap()); 
+                    println!("removing config: {}", config_name.clone().unwrap());
+                    return;
+                } else {
+                    println!("config {} does not exist", config_name.clone().unwrap());
+                    return;
+                }
             }
-        } else if config.is_some() && file.is_some() {
-            todo!("implement removing a file from configuration")
         }
-    } else {
-        println!("program does not exist!");
     }
+    if program_name_found_in_repository == true {
+        println!("removing program: {}", program_name.clone());
+        repo.rm_program(program_name.clone()); 
+    } else {
+        println!("program {} does not exist", program_name.clone());
+        return;
+    }
+
 }
 
 fn show_usage() {
-    println!("wrong usage");
+    println!("welcome to conman!");
+
+    
+
     std::process::exit(1);
 }
 
 fn main() {
-    std::fs::create_dir_all(get_home_dir() + "/.conman/logs/").expect("unable to create $HOME/.conman/logs/");
+    let mode = startup::determine_mode();
 
     simplelog::WriteLogger::init(
         simplelog::LevelFilter::max(),
         simplelog::Config::default(),
-        std::fs::File::create(get_home_dir() + "/.conman/logs/conman.log").unwrap()
+        startup::setup_log_file(mode.clone())
     ).expect("failed to intialise logger!");
 
-    setup_fs();
+    match mode {
+        startup::Mode::Installed => {
+            info!("running in installed mode");
+        }, 
+        startup::Mode::Portable => {
+            info!("running in portable mode");
+        }
+    }
     
-    info!("users home path: {}", get_home_dir());
+    info!("users home path: {}", startup::get_current_user().unwrap().home_dir);
 
-    let programs_managed_by_conman : Vec<Program> = get_managed_programs().unwrap();    
-   
+    let mut repo = Repository::new(startup::get_current_user().unwrap().home_dir + "/.conman/").unwrap();
+    
     let arguements : Vec<String> = std::env::args().collect();
 
     if arguements.len() == 1 {
         show_usage();
+        std::process::exit(1);
     }
-
+    
     match arguements[1].as_str() {
-        "add" => {
+        "add" | "ad" | "a" => {
             // the add command adds a program, config or file 
             info!("add command called");
-            
+
+            let mut program_name : String;
+
+            let mut config_name : Option<String> = None;
+
+            let mut file_path : Option<String> = None;
+
             if arguements.len() < 3 {
                 show_usage();
             }
 
-            let program = Program::new(arguements[2].to_string());
+            // cm 0 add 1 neovim 2 config1 3 file 4
+            program_name = arguements[2].to_owned();
 
-            let config : Option<Config>;
-
-            if arguements.len() >= 4  {
-                config = Some(Config::new(program.name.clone(), arguements[3].to_string())); 
-            } else {
-                config = None;
+            if arguements.len() > 3 {
+                config_name = Some(arguements[3].to_owned());
             }
 
-            let file : Option<ConfigFile>;
-
-            if arguements.len() >= 5 {
-                let file_exists = ConfigFile::new(arguements[4].to_string());
-                if file_exists == None {
-                    println!("file {} does not exist!", arguements[4].to_string());
-                    show_usage();
+            for p in &repo.managed_programs {
+                if p.to_owned().name == arguements[2].to_owned() {
+                    program_name = p.to_owned().name;
+                } 
+            
+                if arguements.len() > 3 {
+                    for c in &p.conifigurations {
+                        if c.to_owned().name == arguements[3].to_owned() {
+                            config_name = Some(c.to_owned().name);
+                        } 
+                    }
                 }
-                file = Some(file_exists.unwrap());
-            } else {
-                file = None; 
             }
 
-            add_command(program, config, file);
+            if arguements.len() > 4 {
+                file_path = Some(arguements[4].to_owned());
+            } else {
+                file_path = None;
+            }
+
+            if program_name.find("/").is_some() {
+                println!("program name cannot contain / forward slashes");
+                std::process::exit(0);
+            } else if config_name.is_some() {
+                if config_name.clone().unwrap().find("/").is_some() {
+                    println!("config name cannot contain / foward slashes");
+                    std::process::exit(0);
+                }
+            }
+
+
+            add_command(&mut repo, program_name, config_name, file_path);
         },
-        "rm" => {
-            // the add command adds a program, config or file 
-            info!("rm command called");
-            
+        "ls" | "l"  => {
+            println!("Repository - {} \n", repo.root);
+
+            if repo.managed_programs.len() >= 1 {
+                for program in &repo.managed_programs {
+                    println!("{} | {} configurations ", program.name, program.conifigurations.len());
+                    
+                    if program.conifigurations.len() >= 1 {
+                        for config in &program.conifigurations {
+                            println!("{} - {} tracked files", config.name, config.managed_files.len());
+
+                                for f in &config.managed_files {
+                                println!("* {} | {}", f.file_name, f.hash);
+                            }
+                        } 
+                    } else {
+                        println!("there are no configurations for {}", program.name);
+                    }
+                    if repo.managed_programs.len() > 1 && repo.managed_programs.last() != Some(program) {
+                        println!("");
+                    }
+                }
+            } else {
+                println!("there are no programs being managed by conman");
+            }
+        },
+        "rm" | "r" => {
+
+            let mut program_name : String;
+
+            let mut config_name : Option<String> = None;
+
+            let mut file_path : Option<String> = None;
+
             if arguements.len() < 3 {
                 show_usage();
             }
 
-            let program = Program::new(arguements[2].to_string());
+            // cm 0 add 1 neovim 2 config1 3 file 4
+            program_name = arguements[2].to_owned();
 
-            let config : Option<Config>;
-
-            if arguements.len() >= 4  {
-                config = Some(Config::new(program.name.clone(), arguements[3].to_string())); 
-            } else {
-                config = None;
+            if arguements.len() > 3 {
+                config_name = Some(arguements[3].to_owned());
             }
 
-            let file : Option<ConfigFile>;
-
-            if arguements.len() >= 5 {
-                let file_exists = ConfigFile::new(arguements[4].to_string());
-                if file_exists == None {
-                    println!("file {} does not exist!", arguements[4].to_string());
+            for p in &repo.managed_programs {
+                if p.to_owned().name == arguements[2].to_owned() {
+                    program_name = p.to_owned().name;
+                } 
+            
+                if arguements.len() > 3 {
+                    for c in &p.conifigurations {
+                        if c.to_owned().name == arguements[3].to_owned() {
+                            config_name = Some(c.to_owned().name);
+                        } 
+                    }
                 }
-                file = Some(file_exists.unwrap());
-            } else {
-                file = None; 
             }
 
-            rm_command(program, config, file);
+            if arguements.len() > 4 {
+                file_path = Some(arguements[4].to_owned());
+            } else {
+                file_path = None;
+            }
+
+            if program_name.find("/").is_some() {
+                println!("program name cannot contain / forward slashes");
+                std::process::exit(0);
+            } else if config_name.is_some() {
+                if config_name.clone().unwrap().find("/").is_some() {
+                    println!("config name cannot contain / foward slashes");
+                    std::process::exit(0);
+                }
+            }
+
+            rm_command(&mut repo, program_name, config_name, file_path);
+        },
+        _ => {show_usage()}
+    }
+
+    for p in repo.managed_programs {
+        for c in p.conifigurations {
+            c.write_manifest();
         }
-        "ls" => {
-            for program in programs_managed_by_conman {
-                println!(" PROGRAM | {} | {} configurations ", program.name, program.conifigurations.len());
-                for config in program.conifigurations {
-                    println!(" CONFIG - {}", config.name);
-                }
-                println!("");
-            }
-        },
-        _ => {}
     }
 }

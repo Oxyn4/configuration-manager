@@ -2,11 +2,30 @@
 name = "cm"
 version = "0.1.0"
 edition = "2021"
+categories = ["command-line-utilities", "filesystem", "config", "command-line-interface"]
 
+
+description = "a command line tool for managing dotfiles and program configuration"
+
+
+publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-json = "0.12.4"
+# needed for conmans manifests 
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.95"
 
+# secure crypto functions 
+openssl = "0.10.50"
+hex = "0.3.2"
+
+# low level platform operations
+libc = "0.2"
+
+#compression of repositories
+flate2 = "1.0.25"
+
+# logging 
 log = "0.4.1"
 simplelog = "0.12.1"
