@@ -26,6 +26,9 @@ libc = "0.2"
 #compression of repositories
 flate2 = "1.0.25"
 
+# for time 
+chrono = "0.4.24"
+
 # logging 
 log = "0.4.1"
 simplelog = "0.12.1"

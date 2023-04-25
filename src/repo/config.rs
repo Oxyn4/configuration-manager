@@ -66,8 +66,6 @@ impl Config {
                 info!("got data from manifest.json returing desrialised struct \n{}", data);
 
                 return Ok(serde_json::from_str(&data).expect("unable to Deserialize data"));
-
-
             } 
         }
     }
@@ -77,8 +75,8 @@ impl Config {
     }
 
     pub fn get_manifest_path(&self) -> String {
-        println!("{}", self.program_name);
-        println!("{}", self.name);
+        // println!("{}", self.program_name);
+        // println!("{}", self.name);
         crate::startup::get_home_dir().unwrap() + "/.conman/programs/" + &self.program_name + "/" + &self.name + "/manifest.json"
     }
 
@@ -111,8 +109,12 @@ impl Config {
             std::fs::remove_file(manifest.clone()).expect("unable to delete outdated manifest");
         }
 
-        info!("manifest path: {}", manifest);
-        println!("man {}", manifest);
+        for f in &self.managed_files {
+            f.to_owned().set_dst_to_relitive_path();
+        }
+
+        // info!("manifest path: {}", manifest);
+        // println!("man {}", manifest);
 
         let mut manifest_d = std::fs::File::create(manifest).expect("unable to create new manifest file");
         

@@ -90,7 +90,7 @@ pub fn determine_mode() -> Mode {
     let exe_path_result = std::env::current_exe();
     
     if exe_path_result.is_err() {
-        log::error!("failed to get the path to current exe resorting to portable mode!");
+        println!("failed to get the path to current exe resorting to portable mode!");
 
         println!("resorting to portable mode!");
 
@@ -104,7 +104,7 @@ pub fn determine_mode() -> Mode {
     let exe_path_string = std::string::String::from(exe_path_result.as_ref().unwrap().to_str().unwrap());
     
     if exe_path_string == ("/usr/bin/".to_owned() + exe_name_string.as_ref()) {
-        log::info!("installed in /usr/bin");
+        println!("installed in /usr/bin");
 
         return Mode::Installed;
     }
@@ -112,43 +112,54 @@ pub fn determine_mode() -> Mode {
     let users_info = get_users();
 
     for user in users_info {
-        let current_users_local_bin_path = user.home_dir.clone() + "/.local/bin/" + &exe_name_string.clone();
+        let user_home_path = std::path::Path::new(&user.home_dir.clone()).to_owned();
+        let users_local_bin_path = user_home_path.join(".local/bin/".to_owned() + &exe_name_string);
 
-        if current_users_local_bin_path == exe_path_string {
-            log::info!("detected running in users: {} ~/.local/bin/ path", user.name);
+        if users_local_bin_path.as_os_str().to_str().unwrap() == exe_path_string {
+            println!("detected running in users: {} ~/.local/bin/ path", user.name);
             return Mode::Installed;
         }
 
-        let current_users_cargo_bin_path = user.home_dir.clone() + ".cargo/bin/" + &exe_path_string.clone();
+        let local_cargo_bin_path = user_home_path.join(".cargo/bin/".to_owned() + &exe_name_string);
 
-        if current_users_local_bin_path == exe_path_string {
-            log::info!("detected running in users: {} ~/.cargo/bin path", user.name);
+        if local_cargo_bin_path.as_os_str().to_str().unwrap() == exe_path_string {
+            println!("detected running in users: {} ~/.cargo/bin path", user.name);
             return Mode::Installed;
         }
     }
- 
+
+    println!("running in portable mode!");
     Mode::Portable
 }
 
 pub fn setup_log_file(conman_mode : Mode) -> std::fs::File {
+    let current_time = chrono::Utc::now().to_rfc3339();
+
     match conman_mode {
         Mode::Installed => {
-            let log_dir = std::path::Path::new("");
+            let mut log_dir = std::path::Path::new(&(get_home_dir().unwrap() + "/.local/state/conman/logs")).to_owned();
 
-            todo!("setup log file for installed mode");  
+            if !log_dir.exists() {
+                std::fs::create_dir_all(log_dir.clone());
+            }
+
+            log_dir.push("conman_".to_owned() + &current_time + ".log");
+
+            return std::fs::File::create(log_dir).unwrap();
         },
         Mode::Portable => {
             let mut exe_dir = std::env::current_exe().unwrap().parent().unwrap().to_path_buf();
 
             exe_dir.push("logs/");
 
-            std::fs::create_dir(exe_dir.clone());
+            if !exe_dir.exists() {
+                std::fs::create_dir(exe_dir.clone()).expect("failed to create logs directory");
+            }
 
-            exe_dir.push("conman.log");
+            exe_dir.push("conman_".to_owned() + &current_time + ".log");
 
             return std::fs::File::create(exe_dir).unwrap();
 
         }
     }
 }
-
