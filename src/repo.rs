@@ -128,9 +128,19 @@ impl Repository {
 
         let destination = self.root.clone() + "programs/" + &program_name + "/" + &config_name + "/" + &file_name;
 
+        let cf = ConfigFile::new(relitive_file_path).unwrap();
+
+        // make sure the new file is not already in config
+        for f in &self.managed_programs[pi].conifigurations[ci].managed_files {
+            if cf.destination_path == f.destination_path {
+                println!("file managed for this config");
+                return;
+            }
+        }
+
         std::fs::copy(file_path, destination).unwrap();
 
-        self.managed_programs[pi].conifigurations[ci].managed_files.push(ConfigFile::new(relitive_file_path).unwrap());
+        self.managed_programs[pi].conifigurations[ci].managed_files.push(cf);
     }
 
     pub fn rm_program(&mut self, program_name : String) {
