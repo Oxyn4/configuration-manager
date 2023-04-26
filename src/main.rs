@@ -95,9 +95,8 @@ fn rm_command(repo : &mut Repository, program_name : String, config_name : Optio
 }
 
 fn show_usage() {
-    println!("welcome to conman!");
-
-    
+    println!("\nwelcome to conman!\n");
+    println!("a tool for managing dotfiles and configuration files");
 
     std::process::exit(1);
 }

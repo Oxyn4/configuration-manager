@@ -1,5 +1,5 @@
 // checks if ~/.conman exists creates if not 
-use serde::{Serialize, Deserialize};
+use serde::{Serialize, Deserialize, ser::SerializeStruct};
 
 use log::info;
 
@@ -8,26 +8,46 @@ use crate::startup;
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct ConfigFile {
     pub file_name : String,
+    #[serde(deserialize_with = "deserialize_dst_path")]
+    #[serde(serialize_with = "serialize_dst_path")]
     pub destination_path : String,
     pub hash : String,
 }
 
+fn deserialize_dst_path<'de, D>(deserializer: D) -> Result<std::string::String, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s : &str = Deserialize::deserialize(deserializer)?;
+    
+    info!("changing a file destination to relitive before : {}", s);
+
+    let ss = s.to_owned();
+    
+    let s = &ss.replace("~", &startup::get_home_dir().expect("unable to get home directory for user"));
+        
+    info!("changing a file destination to relitive after : {}", s);
+
+    return Ok(s.to_string());
+}
+
+fn serialize_dst_path<S>(st: &std::string::String, s: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    info!("changing a file destination to hardcoded before : {}", st);
+    
+    let mut dst = st.clone();
+
+    dst = dst.replace(&startup::get_home_dir().expect("unable to get home directory for user"), "~");   
+    
+        
+    info!("changing a file destination to hardcoded after : {}", st);
+    
+    s.serialize_str(&dst)
+}
+
 impl ConfigFile {
-    pub fn set_dst_to_relitive_path(&mut self) {
-        // replace users home with ~
-        info!("changing a file dst to relitive before : {}", self.destination_path);
-        self.destination_path = self.destination_path.replace(&startup::get_home_dir().expect("unable to get home directory for user"), "~");   
-        info!("changing a file dst to relitive after : {}", self.destination_path);
-    }
-
-    pub fn set_dst_to_hardcode_path(&mut self) {
-        // replace ~ with users home dir
-        info!("changing a file dst to hardcoded before : {}", self.destination_path);
-        self.destination_path = self.destination_path.replace("~", &startup::get_home_dir().expect("unable to get home directory for user"));
-        info!("changing a file dst to hardcoded after : {}", self.destination_path);
-
-    }
-
     pub fn new(relitive_file_path : String) -> Option<Self> {
         let mut current_directory = std::env::current_dir().unwrap();
 
@@ -41,8 +61,6 @@ impl ConfigFile {
                 hash : super::vcs::get_hash_of_file(relitive_file_path),
             };
 
-            new_file.set_dst_to_hardcode_path();
-
             return Some(new_file);
         } else {
             None
@@ -53,5 +71,4 @@ impl ConfigFile {
         self.hash = super::vcs::get_hash_of_file(self.destination_path.clone());
     }
 }
-
 

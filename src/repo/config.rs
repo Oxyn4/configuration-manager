@@ -65,7 +65,9 @@ impl Config {
 
                 info!("got data from manifest.json returing desrialised struct \n{}", data);
 
-                return Ok(serde_json::from_str(&data).expect("unable to Deserialize data"));
+                let config : Config = serde_json::from_str(&data).unwrap();
+
+                return Ok(config);
             } 
         }
     }
@@ -107,10 +109,6 @@ impl Config {
 
         if self.does_manifest_exist() {
             std::fs::remove_file(manifest.clone()).expect("unable to delete outdated manifest");
-        }
-
-        for f in &self.managed_files {
-            f.to_owned().set_dst_to_relitive_path();
         }
 
         // info!("manifest path: {}", manifest);
