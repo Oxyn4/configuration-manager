@@ -40,7 +40,6 @@ where
     let mut dst = st.clone();
 
     dst = dst.replace(&startup::get_home_dir().expect("unable to get home directory for user"), "~");   
-    
         
     info!("changing a file destination to hardcoded after : {}", st);
     
