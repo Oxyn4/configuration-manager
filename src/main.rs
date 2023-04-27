@@ -1,4 +1,7 @@
 
+use std::io::stdout;
+
+use crossterm::ExecutableCommand;
 use log::info;
 
 mod startup;
@@ -89,14 +92,24 @@ fn rm_command(repo : &mut Repository, program_name : String, config_name : Optio
         repo.rm_program(program_name.clone()); 
     } else {
         println!("program {} does not exist", program_name.clone());
-        return;
     }
 
 }
 
 fn show_usage() {
-    println!("\nwelcome to conman!\n");
-    println!("a tool for managing dotfiles and configuration files");
+    println!("\na tool for managing dotfiles and configuration files\n");
+
+    stdout().execute(crossterm::style::SetAttribute(crossterm::style::Attribute::Underlined)).unwrap();
+    println!("COMMANDS");
+    stdout().execute(crossterm::style::SetAttribute(crossterm::style::Attribute::NoUnderline)).unwrap();
+    println!();
+
+    println!("ls - list repository contents, show programs, configs and files");
+    println!("help [command] - show detailed imformation for a specific command");
+    println!("add [program name] [config name] [file path] - add programs, configs and files to repository");
+    println!("rm [program name] [config name] [file path] - remove programs, configs and files from repository");
+    println!();
+
 
     std::process::exit(1);
 }
@@ -254,7 +267,7 @@ fn main() {
                 println!("program name cannot contain / forward slashes");
                 std::process::exit(0);
             } else if config_name.is_some() {
-                if config_name.clone().unwrap().find("/").is_some() {
+                if config_name.clone().unwrap().contains('/') {
                     println!("config name cannot contain / foward slashes");
                     std::process::exit(0);
                 }
@@ -265,9 +278,5 @@ fn main() {
         _ => {show_usage()}
     }
 
-    for p in repo.managed_programs {
-        for c in p.conifigurations {
-            c.write_manifest();
-        }
-    }
+    repo.write_manifests();
 }

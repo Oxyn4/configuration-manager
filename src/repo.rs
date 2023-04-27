@@ -103,6 +103,15 @@ impl Repository {
         return Err(error::ErrorKind::FileNotInRepository);
     }
 
+    pub fn write_manifests(&self) {
+        for p in &self.managed_programs {
+            for c in &p.conifigurations {
+                c.write_manifest();
+            }
+        }
+
+    }
+
     pub fn new_program(&mut self, program_name : String) -> u16 {
         let r = self.managed_programs.len() as u16;
         self.managed_programs.push(Program::new(self.root.clone() + "programs/" + &program_name + "/"));

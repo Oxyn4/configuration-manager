@@ -32,3 +32,6 @@ chrono = "0.4.24"
 # logging 
 log = "0.4.1"
 simplelog = "0.12.1"
+
+# for a nice ui
+crossterm = "0.26.1"
