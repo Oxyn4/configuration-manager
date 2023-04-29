@@ -26,7 +26,7 @@ impl Repository {
         let mut managed_programs_init = Vec::new();
 
         let repo_root_path = std::path::Path::new(&repo_root);
-        if repo_root_path.exists() == false {
+        if !repo_root_path.exists() {
             info!("the repository does not exist creating new one");
             let creation_result = std::fs::create_dir_all(repo_root.clone());
 
@@ -60,7 +60,7 @@ impl Repository {
         }
                 
 
-        return Some(Repository { 
+        Some(Repository { 
             root: repo_root, 
             managed_programs: managed_programs_init 
         })
@@ -74,7 +74,7 @@ impl Repository {
             }
             count += 1;
         }
-        return Err(error::ErrorKind::ProgramNotInRepository);
+        Err(error::ErrorKind::ProgramNotInRepository)
     }
 
     pub fn get_config_index(&self, program_name : String, config_name : String) -> Result<usize, error::ErrorKind> {
@@ -86,7 +86,7 @@ impl Repository {
             }
             count += 1;
         }
-        return Err(error::ErrorKind::ConfigurationNotInRepository);
+        Err(error::ErrorKind::ConfigurationNotInRepository)
     }
 
     pub fn get_file_index(&self, program_name : String, config_name : String, file : String) -> Result<usize, error::ErrorKind> {
@@ -100,7 +100,7 @@ impl Repository {
             }
             count += 1;
         }
-        return Err(error::ErrorKind::FileNotInRepository);
+        Err(error::ErrorKind::FileNotInRepository)
     }
 
     pub fn write_manifests(&self) {
@@ -115,13 +115,13 @@ impl Repository {
     pub fn new_program(&mut self, program_name : String) -> u16 {
         let r = self.managed_programs.len() as u16;
         self.managed_programs.push(Program::new(self.root.clone() + "programs/" + &program_name + "/"));
-        return r;
+        r
     }
 
     pub fn new_config(&mut self, program_name : &String, config_name : String) {
         let i = self.get_program_index(program_name.clone()).unwrap();
 
-        self.managed_programs[i].conifigurations.push(Config::new(self.root.clone() + "programs/" + &program_name + "/" + &config_name).unwrap());
+        self.managed_programs[i].conifigurations.push(Config::new(self.root.clone() + "programs/" + program_name + "/" + &config_name).unwrap());
     }
 
     pub fn new_file(&mut self, program_name : String, config_name : String, relitive_file_path : String) {

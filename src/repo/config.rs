@@ -1,7 +1,11 @@
 
 use std::io::Write;
 
+
 use super::{config_file::ConfigFile, error};
+
+use crate::startup::users::*;
+
 use serde::{Serialize, Deserialize};
 use log::{warn, info, error};
 
@@ -15,10 +19,10 @@ pub struct Config {
 
 impl Config {
     pub fn new(root : String) -> Result<Self, error::ErrorKind> {
-        info!("creating a new config with root: {}", root.clone());
+        info!("creating a new config with root: {}", root);
 
         let root_path = std::path::Path::new(&root);
-        if root_path.exists() == false {
+        if !root_path.exists() {
             std::fs::create_dir_all(root_path).expect("failed to create new config directory"); 
 
             return Ok(Config {
@@ -32,13 +36,13 @@ impl Config {
             .file_name().unwrap()
             .to_owned().into_string().unwrap();
        
-        let program_name_init = std::path::Path::new(&root.clone())
+        let _program_name_init = std::path::Path::new(&root.clone())
             .parent().unwrap()
             .to_owned()
             .into_os_string()
             .into_string().unwrap();
 
-            if name_init.clone().find("/").is_some() {
+            if name_init.find('/').is_some() {
                 println!("config name cannot contain / foward slashes");
 
                 return Err(error::ErrorKind::ConfigNameContainsIllegalCharacter);
@@ -50,13 +54,13 @@ impl Config {
             Err(e) => {
                 if e.kind() == std::io::ErrorKind::NotFound {
                     error!("missing manifest file for {}", name_init);
-                    println!("manifest file missing for {}", name_init);
+                    println!("manifest file missing for {name_init}");
                 } else {
                     error!("error occured opening manifest files for  {}", name_init);
-                    println!("error occured opening manifest file for {}", name_init);
+                    println!("error occured opening manifest file for {name_init}");
                 }
 
-                return Err(error::ErrorKind::MissingManifest);
+                Err(error::ErrorKind::MissingManifest)
             },
             Ok(j) => {
                 info!("reading data from manifest.json");
@@ -67,19 +71,19 @@ impl Config {
 
                 let config : Config = serde_json::from_str(&data).unwrap();
 
-                return Ok(config);
+                Ok(config)
             } 
         }
     }
 
     pub fn get_directory_path(&self) -> String {
-        String::from(crate::startup::get_home_dir().unwrap() + "/.conman/programs/" + &self.program_name + "/" + &self.name + "/") 
+        get_home_dir().unwrap() + "/.conman/programs/" + &self.program_name + "/" + &self.name + "/" 
     }
 
     pub fn get_manifest_path(&self) -> String {
         // println!("{}", self.program_name);
         // println!("{}", self.name);
-        crate::startup::get_home_dir().unwrap() + "/.conman/programs/" + &self.program_name + "/" + &self.name + "/manifest.json"
+        get_home_dir().unwrap() + "/.conman/programs/" + &self.program_name + "/" + &self.name + "/manifest.json"
     }
 
     pub fn does_manifest_exist(&self) -> bool {
@@ -126,9 +130,9 @@ impl Config {
             return None; 
         }
         
-        return Some(
+        Some(
             serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap()
-        );
+        )
     }
 
     pub fn delete(&mut self) {

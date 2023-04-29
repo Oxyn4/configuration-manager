@@ -3,6 +3,8 @@
 use super::config::Config;
 use log::{info, warn};
 
+use crate::startup::users::*;
+
 // 
 // ~/.conman/pr
 // ograms/NAME 
@@ -14,9 +16,9 @@ pub struct Program {
 
 impl Program {
     pub fn new(root : String) -> Self {
-        info!("creating a program struct with root: {}", root.clone());
+        info!("creating a program struct with root: {}", root);
         let root_path = std::path::Path::new(&root);
-        if root_path.exists() == false {
+        if !root_path.exists() {
             info!("supplied root path: {} does not exist", root);
             std::fs::create_dir(root_path).expect("failed to create a new directory for new program");
 
@@ -41,7 +43,7 @@ impl Program {
                     config.unwrap()
                         .path()
                         .into_os_string()
-                        .into_string().unwrap() + &"/".to_owned())
+                        .into_string().unwrap() + "/")
                     .expect("unable to create new config"));
 
         }
@@ -52,7 +54,7 @@ impl Program {
     }
     
     pub fn does_manifest_exist(&self) -> bool {
-        let manifest_path = crate::startup::get_home_dir().unwrap() + "/.conman/programs/" + &self.name + "/conman.json";
+        let manifest_path = get_home_dir().unwrap() + "/.conman/programs/" + &self.name + "/conman.json";
 
         if std::path::Path::new(&manifest_path).exists() {
             info!("program: {} contains a manifest file", self.name);
@@ -65,7 +67,7 @@ impl Program {
     }
 
     pub fn get_directory_path(&self) -> String {
-        String::from(crate::startup::get_home_dir().unwrap() + "/.conman/programs/" + self.name.as_str() + "/")
+        get_home_dir().unwrap() + "/.conman/programs/" + self.name.as_str() + "/"
     }
 
     pub fn directory_exists(&self) -> bool {

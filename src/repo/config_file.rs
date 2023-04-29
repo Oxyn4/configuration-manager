@@ -1,9 +1,11 @@
 // checks if ~/.conman exists creates if not 
-use serde::{Serialize, Deserialize, ser::SerializeStruct};
+use serde::{Serialize, Deserialize};
 
 use log::info;
 
 use crate::startup;
+
+use crate::startup::users::*;
 
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct ConfigFile {
@@ -24,11 +26,11 @@ where
 
     let ss = s.to_owned();
     
-    let s = &ss.replace("~", &startup::get_home_dir().expect("unable to get home directory for user"));
+    let s = &ss.replace('~', &get_home_dir().expect("unable to get home directory for user"));
         
     info!("changing a file destination to relitive after : {}", s);
 
-    return Ok(s.to_string());
+    Ok(s.to_string())
 }
 
 fn serialize_dst_path<S>(st: &std::string::String, s: S) -> Result<S::Ok, S::Error>
@@ -39,7 +41,7 @@ where
     
     let mut dst = st.clone();
 
-    dst = dst.replace(&startup::get_home_dir().expect("unable to get home directory for user"), "~");   
+    dst = dst.replace(&get_home_dir().expect("unable to get home directory for user"), "~");   
         
     info!("changing a file destination to hardcoded after : {}", st);
     
@@ -54,13 +56,13 @@ impl ConfigFile {
 
         if current_directory.exists() {
             info!("new config file {} full path: {}", current_directory.as_path().file_name()?.to_str().unwrap().to_string(), current_directory.as_path().to_str().unwrap().to_string());
-            let mut new_file =ConfigFile { 
+            let new_file =ConfigFile { 
                 file_name: current_directory.as_path().file_name().unwrap().to_str().unwrap().to_string(), 
                 destination_path: current_directory.as_path().to_str().unwrap().to_string(),
                 hash : super::vcs::get_hash_of_file(relitive_file_path),
             };
 
-            return Some(new_file);
+            Some(new_file)
         } else {
             None
         }

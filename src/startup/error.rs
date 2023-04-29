@@ -28,7 +28,7 @@ impl fmt::Display for ErrorKind {
 // Implement std::fmt::Debug for AppError
 impl fmt::Debug for ErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "repo::error file: {}, line: {} reason: {}", file!(), line!(), self) // programmer-facing output
+        write!(f, "repo::error file: ile!(, line: {} reason: {}", line!(), self) // programmer-facing output
     }
 }
 

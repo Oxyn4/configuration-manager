@@ -4,7 +4,7 @@ pub fn get_hash_of_file(path : String) -> String {
     let mut hasher = openssl::sha::Sha256::new();
     hasher.update(&file_data);
     let finish = hasher.finish();
-    return hex::encode(finish);
+    hex::encode(finish)
 }
 
 pub struct FileUpdate {
@@ -18,6 +18,6 @@ pub struct RepositoryUpdate {
     file_changes : Vec<FileUpdate>,
 }
 
-pub fn CheckRepositoryForUpates(repo : &crate::Repository) -> std::vec::Vec<RepositoryUpdate> {
-    return Vec::new();    
+pub fn CheckRepositoryForUpates(_repo : &crate::Repository) -> std::vec::Vec<RepositoryUpdate> {
+    Vec::new()    
 }
