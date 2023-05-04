@@ -17,7 +17,6 @@ pub fn show_usage() {
     println!("rm [program name] [config name] [file path] - remove programs, configs and files from repository");
     println!();
 
-
     std::process::exit(1);
 }
 

@@ -37,3 +37,12 @@ pub fn setup_log_file(conman_mode : Mode) -> std::fs::File {
         }
     }
 }
+
+pub fn logging_init(mode : &Mode) {
+    simplelog::WriteLogger::init(
+        simplelog::LevelFilter::max(),
+        simplelog::Config::default(),
+        setup_log_file(mode.clone())
+    ).expect("failed to intialise logger!");
+
+}
