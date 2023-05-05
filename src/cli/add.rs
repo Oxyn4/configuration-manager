@@ -1,11 +1,15 @@
 
 use crate::repo::*;
 
-pub fn add_command(repo : &mut Repository, program_name : String, config_name : Option<String>, file : Option<String>) {
-    
-    if file.is_some() && !std::path::Path::new(&file.clone().unwrap()).exists() {
-        println!("provided file does not exist!");
-        std::process::exit(0);
+pub fn add_command(repo : &mut Repository, program_name : String, config_name : Option<String>, file : Option<Vec<String>>) {
+     
+    if file.is_some() {
+        for f in file.clone().unwrap() {
+            if !std::path::Path::new(&f).exists() {
+                println!("provided file does not exist!");
+                std::process::exit(0);
+            }
+        }
     }
 
     let mut config_name_found_in_repository : bool = false;
@@ -33,9 +37,11 @@ pub fn add_command(repo : &mut Repository, program_name : String, config_name : 
         repo.new_config(&program_name, config_name.clone().unwrap()); 
     }
 
-    if file.is_some() && file.is_some() {
-        println!("adding file: {}", file.clone().unwrap());
-        repo.new_file(program_name, config_name.unwrap(), file.unwrap());
+    if file.is_some() {
+        for f in file.clone().unwrap() {
+            println!("adding file: {}", f);
+            repo.new_file(program_name.clone(), config_name.clone().unwrap(), f);
+        }
     }
    
 }

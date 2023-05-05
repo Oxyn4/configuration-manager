@@ -24,20 +24,24 @@ fn get_cli() -> clap::Command {
         .arg(arg!(-v --version "prints the program version and related info"))
         .subcommand(
             clap::Command::new("add")
+                .alias("a")
+                .alias("ad")
                 .about("add a program, config or files to the repo")
                 .arg(arg!(<PROGRAM>  "the name of a program, will create a new one if does not already exist"))
                 .arg(arg!([CONFIG] "the name of a config, will create a new one if does not already exist"))
-                .arg(arg!([FILE] "a relitive path to a file that will be added to the specified program and config"))
+                .arg(arg!([FILE] "a relitive path to a file that will be added to the specified program and config").num_args(1..))
         )
         .subcommand(
             clap::Command::new("rm")
+                .alias("r")
                 .about("remove a program, config or files to the repo")
-                .arg(arg!(<PROGRAM>  "the name of a program to remove"))
+                .arg(arg!(<PROGRAM>  "the name of a program to remove")) 
                 .arg(arg!([CONFIG] "the name of a config to remove from the specified program"))
                 .arg(arg!([FILE] "a relitive path to a file that will be removed from the specified program and config"))
         )
         .subcommand(
             clap::Command::new("ls")
+                .alias("l")
                 .about("list the contents of a repository")                       
         )
 
@@ -64,8 +68,8 @@ pub fn cli(repo : &mut Repository) {
         ("add", sub_matches) => {
             let program = sub_matches.get_one::<String>("PROGRAM").expect("required"); 
             let config = sub_matches.get_one::<String>("CONFIG");
-            let files = sub_matches.get_one::<String>("FILE");
-
+            let files = sub_matches.get_many::<String>("FILE");
+            
             if config.is_none() && files.is_none() {
                 add_command(repo, 
                     program.to_string(), 
@@ -81,7 +85,7 @@ pub fn cli(repo : &mut Repository) {
                     repo, 
                     program.to_string(), 
                     Some(config.unwrap().to_string()), 
-                    Some(files.unwrap().to_string()));
+                    Some(files.unwrap().map(|sr| return sr.to_string()).collect()));
             } else {
                 panic!("");
             }
