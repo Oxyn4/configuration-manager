@@ -1,5 +1,5 @@
 
-use std::io::stdout;
+
 
 use log::info;
 
@@ -33,5 +33,5 @@ fn main() -> std::process::ExitCode {
    
     repo.write_manifests();
 
-    return std::process::ExitCode::SUCCESS;
+    std::process::ExitCode::SUCCESS
 }

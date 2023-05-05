@@ -10,7 +10,7 @@ use ls::ls;
 
 use crate::repo::*;
 
-use log::info;
+
 
 use clap::*;
 
@@ -85,7 +85,7 @@ pub fn cli(repo : &mut Repository) {
                     repo, 
                     program.to_string(), 
                     Some(config.unwrap().to_string()), 
-                    Some(files.unwrap().map(|sr| return sr.to_string()).collect()));
+                    Some(files.unwrap().map(|sr| sr.to_string()).collect()));
             } else {
                 panic!("");
             }
@@ -122,7 +122,7 @@ pub fn cli(repo : &mut Repository) {
             ls(repo);
         }
         (ext, _) => {
-            println!("{} is not a valid use of this CLI", ext);
+            println!("{ext} is not a valid use of this CLI");
         }
     }
 }

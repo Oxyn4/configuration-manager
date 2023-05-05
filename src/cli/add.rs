@@ -38,8 +38,8 @@ pub fn add_command(repo : &mut Repository, program_name : String, config_name : 
     }
 
     if file.is_some() {
-        for f in file.clone().unwrap() {
-            println!("adding file: {}", f);
+        for f in file.unwrap() {
+            println!("adding file: {f}");
             repo.new_file(program_name.clone(), config_name.clone().unwrap(), f);
         }
     }
