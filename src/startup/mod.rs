@@ -43,7 +43,7 @@ pub fn determine_mode() -> Mode {
         let users_local_bin_path = user_home_path.join(".local/bin/".to_owned() + &exe_name_string);
 
         if users_local_bin_path.as_os_str().to_str().unwrap() == exe_path_string {
-            println!("detected running in users: {} ~/.local/bin/ path", user.name);
+            // println!("detected running in users: {} ~/.local/bin/ path", user.name);
             return Mode::Installed;
         }
 
