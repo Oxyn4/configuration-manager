@@ -1,5 +1,5 @@
 [package]
-name = "cm"
+name = "configuration-manager"
 version = "0.1.0"
 edition = "2021"
 categories = ["command-line-utilities", "filesystem", "config", "command-line-interface"]
@@ -10,6 +10,11 @@ description = "a command line tool for managing dotfiles and program configurati
 
 publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name="cm"
+path="src/main.rs"
+edition="2021"
 
 [dependencies]
 # needed for conmans manifests 
@@ -36,7 +41,5 @@ simplelog = "0.12.1"
 # for a nice ui
 crossterm = "0.26.1"
 clap = "4.2.7"
-
-# cli 
-
+git2 = "0.17.1"
 
