@@ -13,31 +13,17 @@ pub fn add_command(repo : &mut Repository, program_name : String, config_name : 
         }
     }
 
-    let mut config_name_found_in_repository : bool = false;
-    let mut program_name_found_in_repository : bool = false;
-    for p in &repo.managed_programs.clone() { 
-        if program_name == p.name {
-            program_name_found_in_repository = true;
-
-            if config_name.is_some() {
-                for c in &p.conifigurations { 
-                    if config_name.clone().unwrap() == c.name {
-                        config_name_found_in_repository = true;
-                    }
-                }
-            }
-        }
+    if let Some(c) = config_name {
+        if repo.get_config_index(program_name.clone(), c.clone()).is_ok() {
+            println!("creating config: {}", c.clone());
+            repo.new_config(&program_name, c);
+        } 
     }
-    if !program_name_found_in_repository {
+
+    if repo.get_program_index(program_name.clone()).is_ok() {
         println!("creating program: {}", program_name.clone());
         repo.new_program(program_name.clone()); 
     }
-
-    if !config_name_found_in_repository && config_name.is_some() {
-        println!("creating config: {}", config_name.clone().unwrap());
-        repo.new_config(&program_name, config_name.clone().unwrap()); 
-    }
-
 }
 
 
