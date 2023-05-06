@@ -7,7 +7,7 @@ pub fn add_command(repo : &mut Repository, program_name : String, config_name : 
         println!("creating program: {}", program_name.clone());
         repo.new_program(program_name.clone()); 
     } else if config_name.is_none() {
-        println!("program {} already managed for repository", program_name);
+        println!("program {program_name} already managed for repository");
     }   
 
     if let Some(c) = &config_name {
@@ -15,13 +15,13 @@ pub fn add_command(repo : &mut Repository, program_name : String, config_name : 
             println!("creating config: {}", c.clone());
             repo.new_config(&program_name, c.to_string());
         } else if file.is_none() {
-            println!("config {} already managed for repository", c);
+            println!("config {c} already managed for repository");
         } 
     }
 
     if let Some(v) = file {
         let existant_files = v.iter().filter(|s| {
-            if std::path::Path::new(s).exists() {return true} else {println!("the file {} does not exist", s); return false}});
+            if std::path::Path::new(s).exists() {true} else {println!("the file {s} does not exist"); false}});
 
         for f in existant_files {
             println!("adding file: {f}");
