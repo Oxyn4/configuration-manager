@@ -78,6 +78,10 @@ here we have added a configuration called blue_colorscheme. finally lets add a f
 cm add neovim blue_colorscheme init.lua
 ```
 now we have a file in our config. You can follow this pattern to add more programs, configs and files.
+you can also add multiple files at once:
+```sh 
+cm add neovim blue_colorscheme file.lua file2.lua 
+```
 
 
 
