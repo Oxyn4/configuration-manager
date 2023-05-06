@@ -1,17 +1,23 @@
 
 use crate::repo::*;
 
-pub fn rm_command(repo : &mut Repository, program_name : String, config_name : Option<String>, file : Option<String>) {
-    if file.is_some() {  
-        let string_path_to_repo = repo.root.clone() + "programs/" + &program_name + "/" + &config_name.clone().unwrap() + "/" + &file.clone().unwrap();
-        let file_path_in_repo = std::path::Path::new(&(string_path_to_repo));
-        if !file_path_in_repo.exists() {
-            println!("provided file does not exist!");
-            std::process::exit(0);
-        } else {
-            println!("removing file: {}", file.clone().unwrap());
-            repo.rm_file(program_name, config_name.unwrap(), file.unwrap());
-            return;
+pub fn rm_command(repo :&mut Repository, program_name : String, config_name : Option<String>, file : Option<Vec<String>>) {
+    if file.is_some() {
+        //
+        println!("{:?}", file.clone());
+        println!("{:?}", file.clone().unwrap());
+        for f in file.unwrap() {
+            let string_path_to_repo = repo.root.clone() + "programs/" + &program_name + "/" + &config_name.clone().unwrap() + "/" + &f;
+            println!(" sp {}", string_path_to_repo);
+            let file_path_in_repo = std::path::Path::new(&(string_path_to_repo));
+            if !file_path_in_repo.exists() {
+                println!("provided file: {} does not exist!", f);
+                std::process::exit(0);
+            } else {
+                println!("removing file: {}", f.clone());
+                repo.rm_file(program_name, config_name.unwrap(), f);
+                return;
+            }
         }
     }
 

@@ -18,6 +18,6 @@ pub struct RepositoryUpdate {
     file_changes : Vec<FileUpdate>,
 }
 
-pub fn CheckRepositoryForUpates(_repo : &crate::Repository) -> std::vec::Vec<RepositoryUpdate> {
+pub fn check_repository_for_upates(_repo : &crate::Repository) -> std::vec::Vec<RepositoryUpdate> {
     Vec::new()    
 }

@@ -37,7 +37,7 @@ fn get_cli() -> clap::Command {
                 .about("remove a program, config or files to the repo")
                 .arg(arg!(<PROGRAM>  "the name of a program to remove")) 
                 .arg(arg!([CONFIG] "the name of a config to remove from the specified program"))
-                .arg(arg!([FILE] "a relitive path to a file that will be removed from the specified program and config"))
+                .arg(arg!([FILE] "a relitive path to a file that will be removed from the specified program and config").num_args(1..))
         )
         .subcommand(
             clap::Command::new("ls")
@@ -95,7 +95,7 @@ pub fn cli(repo : &mut Repository) {
         ("rm", sub_matches) => {
             let program = sub_matches.get_one::<String>("PROGRAM").expect("required"); 
             let config = sub_matches.get_one::<String>("CONFIG");
-            let files = sub_matches.get_one::<String>("FILE");
+            let files = sub_matches.get_many::<String>("FILE");
 
             if config.is_none() && files.is_none() {
                 rm_command(repo, 
@@ -105,14 +105,14 @@ pub fn cli(repo : &mut Repository) {
             } else if config.is_some() && files.is_none() {
                 rm_command(repo, 
                     program.to_string(), 
-                    Some(config.unwrap().
-                        to_string()), None);
+                    Some(config.unwrap().to_string()), 
+                    None);
             } else if config.is_some() && files.is_some() {
                 rm_command(
                     repo, 
                     program.to_string(), 
                     Some(config.unwrap().to_string()), 
-                    Some(files.unwrap().to_string()));
+                    Some(files.unwrap().map(|sr| sr.to_string()).collect()));
             } else {
                 panic!("");
             }

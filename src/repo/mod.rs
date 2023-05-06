@@ -1,4 +1,6 @@
 
+#![allow(unused)]
+
 pub mod program;
 use log::info;
 use program::Program;
