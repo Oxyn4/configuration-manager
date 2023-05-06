@@ -2,8 +2,10 @@
 # the *con*figuration *man*ager
 conman is a tool for managing linux dotfiles. With a focus on providing a program that can provide the following functionality:
 
-- [ ] creating a repository of configuration files
-- [ ] allowing the store of mutliple configurations for a single program
+- [x] creating a repository of configuration files
+- [x] allowing the store of mutliple configurations for a single program
+- [x] listing contents of repository
+- [x] removing programs, configs and files from a repository
 - [ ] allowing the switch between different configurations easily
 - [ ] backing up that repository with multiple format options
 - [ ] version control of individual configurations
