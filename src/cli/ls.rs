@@ -10,7 +10,7 @@ pub fn ls(repo : &mut Repository) {
             
             if !program.conifigurations.is_empty() {
                 for config in &program.conifigurations {
-                    println!("{} - {} tracked files", config.name, config.managed_files.len());
+                    println!("{} - {} tracked files", config.name(), config.managed_files.len());
 
                         for f in &config.managed_files {
                         println!("* {} -> {}", f.file_name, f.hash);

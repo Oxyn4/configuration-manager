@@ -12,31 +12,33 @@ use log::{warn, info, error};
 // ~/.conman/programs/PROGRAM_NAME/NAME
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct Config {
-    pub name : String,
-    pub program_name : String,
+    // pub name : String,
+    // pub program_name : String,
+    pub root : String,
     pub managed_files : Vec<ConfigFile>,
 }
 
 impl Config {
-    pub fn new(root : String) -> Result<Self, error::ErrorKind> {
-        info!("creating a new config with root: {}", root);
+    pub fn new(root_init : String) -> Result<Self, error::ErrorKind> {
+        info!("creating a new config with root: {}", root_init);
 
-        let root_path = std::path::Path::new(&root);
+        let root_path = std::path::Path::new(&root_init);
         if !root_path.exists() {
             std::fs::create_dir_all(root_path).expect("failed to create new config directory"); 
 
             return Ok(Config {
-                name : root_path.file_name().unwrap().to_owned().into_string().unwrap(),
-                program_name : root_path.parent().unwrap().to_owned().file_name().unwrap().to_owned().into_string().unwrap(),
+                // name : root_path.file_name().unwrap().to_owned().into_string().unwrap(),
+                // program_name : root_path.parent().unwrap().to_owned().file_name().unwrap().to_owned().into_string().unwrap(),
+                root : root_init,
                 managed_files : Vec::new(),
             })
         }
 
-        let name_init = std::path::Path::new(&root.clone())
+        let name_init = std::path::Path::new(&root_init.clone())
             .file_name().unwrap()
             .to_owned().into_string().unwrap();
        
-        let _program_name_init = std::path::Path::new(&root.clone())
+        let _program_name_init = std::path::Path::new(&root_init.clone())
             .parent().unwrap()
             .to_owned()
             .into_os_string()
@@ -48,7 +50,7 @@ impl Config {
                 return Err(error::ErrorKind::ConfigNameContainsIllegalCharacter);
             }
 
-        let json_result = std::fs::read(root.clone() + "/manifest.json");
+        let json_result = std::fs::read(root_init.clone() + "/manifest.json");
 
         match json_result {
             Err(e) => {
@@ -75,26 +77,37 @@ impl Config {
             } 
         }
     }
+    
+    pub fn parent_program(&self) -> String {
+        return String::from(std::path::Path::new(&self.root).parent().to_owned().unwrap().to_str().unwrap());
+    }
+
+    pub fn name(&self) -> String {
+        return String::from(std::path::Path::new(&self.root).file_name().unwrap().to_os_string().to_str().unwrap());
+
+    }
 
     pub fn get_directory_path(&self) -> String {
-        get_home_dir().unwrap() + "/.conman/programs/" + &self.program_name + "/" + &self.name + "/" 
+        // get_home_dir().unwrap() + "/.conman/programs/" + &self.parent_program() + "/" + &self.name() + "/" 
+        // get_home_dir().unwrap() + "/.conman/programs/" + &self.parent_program() + "/" + &self.name() + "/"
+        self.root.clone()
     }
 
     pub fn get_manifest_path(&self) -> String {
-        // println!("{}", self.program_name);
-        // println!("{}", self.name);
-        get_home_dir().unwrap() + "/.conman/programs/" + &self.program_name + "/" + &self.name + "/manifest.json"
+        // println!("{}", self.parent_program());
+        // println!("{}", self.name());
+        self.parent_program() + "/" + &self.name() + "/manifest.json"
     }
 
     pub fn does_manifest_exist(&self) -> bool {
         let manifest_path = self.get_manifest_path();
 
         if std::path::Path::new(&manifest_path).exists() {
-            info!("config: {} for program: {} contains a manifest file", self.name, self.program_name);
+            info!("config: {} for program: {} contains a manifest file", self.name(), self.parent_program());
             return true;
         }
         
-        warn!("config: {} for program: {} missing manifest conman.json", self.name, self.program_name);
+        warn!("config: {} for program: {} missing manifest conman.json", self.name(), self.parent_program());
 
         false
     }
@@ -108,7 +121,7 @@ impl Config {
     }
 
     pub fn write_manifest(&self) {   
-        info!("writing manifest for {}", self.name);
+        info!("writing manifest for {}", self.name());
         let manifest = self.get_manifest_path();
 
         if self.does_manifest_exist() {

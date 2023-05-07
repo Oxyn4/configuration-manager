@@ -83,7 +83,7 @@ impl Repository {
         let pi = self.get_program_index(program_name).expect("failed to get index of program");
         let mut count : usize = 0;
         for c in &self.managed_programs[pi].conifigurations {
-            if c.name == config_name {
+            if c.name() == config_name {
                 return Ok(count);
             }
             count += 1;
