@@ -97,7 +97,7 @@ impl Repository {
         let mut count : usize = 0;
         let file_name = std::path::Path::new(&file).file_name().unwrap().to_owned().into_string().unwrap();
         for f in &self.managed_programs[pi].conifigurations[ci].managed_files {
-            if f.file_name == file_name {
+            if f.file_name() == file_name {
                 return Ok(count);
             }
             count += 1;
@@ -179,7 +179,7 @@ impl Repository {
 
         let fi = self.get_file_index(program_name, config_name, file).unwrap();
 
-        std::fs::remove_file(self.managed_programs[pi].conifigurations[ci].get_directory_path() + &self.managed_programs[pi].conifigurations[ci].managed_files[fi].file_name).unwrap();
+        std::fs::remove_file(self.managed_programs[pi].conifigurations[ci].get_directory_path() + &self.managed_programs[pi].conifigurations[ci].managed_files[fi].file_name()).unwrap();
 
         self.managed_programs[pi].conifigurations[ci].managed_files.remove(fi);
     }

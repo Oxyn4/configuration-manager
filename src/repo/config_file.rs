@@ -9,7 +9,6 @@ use crate::startup::users::*;
 
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct ConfigFile {
-    pub file_name : String,
     #[serde(deserialize_with = "deserialize_dst_path")]
     #[serde(serialize_with = "serialize_dst_path")]
     pub destination_path : String,
@@ -57,7 +56,7 @@ impl ConfigFile {
         if current_directory.exists() {
             info!("new config file {} full path: {}", current_directory.as_path().file_name()?.to_str().unwrap().to_string(), current_directory.as_path().to_str().unwrap().to_string());
             let new_file =ConfigFile { 
-                file_name: current_directory.as_path().file_name().unwrap().to_str().unwrap().to_string(), 
+                // file_name: current_directory.as_path().file_name().unwrap().to_str().unwrap().to_string(), 
                 destination_path: current_directory.as_path().to_str().unwrap().to_string(),
                 hash : super::vcs::get_hash_of_file(relitive_file_path),
             };
@@ -66,6 +65,10 @@ impl ConfigFile {
         } else {
             None
         }
+    }
+
+    pub fn file_name(&self) -> String {
+        return std::path::Path::new(&self.destination_path).file_name().unwrap().to_os_string().to_str().unwrap().to_owned();
     }
 
     pub fn update_hash(&mut self) {

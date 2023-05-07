@@ -13,7 +13,7 @@ pub fn ls(repo : &mut Repository) {
                     println!("{} - {} tracked files", config.name(), config.managed_files.len());
 
                         for f in &config.managed_files {
-                        println!("* {} -> {}", f.file_name, f.hash);
+                        println!("* {} -> {}", f.file_name(), f.hash);
                     }
                 } 
             } else {
