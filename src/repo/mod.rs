@@ -105,6 +105,19 @@ impl Repository {
         Err(error::ErrorKind::FileNotInRepository)
     }
 
+    pub fn get_file_index_from_hash(&self, program_name : String, config_name : String, hash : String) -> Result<usize, error::ErrorKind> {
+        let pi = self.get_program_index(program_name.clone())?;
+        let ci = self.get_config_index(program_name, config_name)?;
+        let mut count : usize = 0;
+        for f in &self.managed_programs[pi].conifigurations[ci].managed_files {
+            if f.hash == hash {
+                return Ok(count);
+            }
+            count += 1;
+        }
+        Err(error::ErrorKind::FileNotInRepository)
+    }
+
     pub fn write_manifests(&self) {
         for p in &self.managed_programs {
             for c in &p.conifigurations {
@@ -137,9 +150,11 @@ impl Repository {
 
         let file_name = file_path.file_name().unwrap().to_owned().into_string().unwrap();
 
-        let destination = self.root.clone() + "programs/" + &program_name + "/" + &config_name + "/" + &file_name;
-
         let cf = ConfigFile::new(relitive_file_path).unwrap();
+
+        // let destination = self.root.clone() + "programs/" + &program_name + "/" + &config_name + "/" + &cf.hash;
+        let destination = format!("{}programs/{}/{}/{}", self.root.clone(), program_name, config_name, cf.hash);
+        println!("{}", destination);
 
         // make sure the new file is not already in config
         for f in &self.managed_programs[pi].conifigurations[ci].managed_files {
@@ -172,14 +187,16 @@ impl Repository {
         self.managed_programs[pi].conifigurations.remove(ci);
     }
 
-    pub fn rm_file(&mut self, program_name : String, config_name : String, file : String) {
+    pub fn rm_file(&mut self, program_name : String, config_name : String, file_hash : String) {
         let pi = self.get_program_index(program_name.clone()).unwrap();
 
         let ci = self.get_config_index(program_name.clone(), config_name.clone()).unwrap();
 
-        let fi = self.get_file_index(program_name, config_name, file).unwrap();
+        let fi = self.get_file_index_from_hash(program_name, config_name, file_hash).unwrap();
 
-        std::fs::remove_file(self.managed_programs[pi].conifigurations[ci].get_directory_path() + &self.managed_programs[pi].conifigurations[ci].managed_files[fi].file_name()).unwrap();
+        println!("{}", self.managed_programs[pi].conifigurations[ci].get_directory_path() + &self.managed_programs[pi].conifigurations[ci].managed_files[fi].hash);
+        std::fs::remove_file(self.managed_programs[pi].conifigurations[ci].get_directory_path() + &self.managed_programs[pi].conifigurations[ci].managed_files[fi].hash);
+
 
         self.managed_programs[pi].conifigurations[ci].managed_files.remove(fi);
     }

@@ -28,15 +28,26 @@ pub fn rm_command(repo :&mut Repository, program_name : String, config_name : Op
     // make sure the file was given and all 
     let rr = repo.root.clone();
     if let Some(v) = file {
-        let existant_files = v.iter()
-             // filter files that dont exist
-            .filter(|fp| {
-                let string_path_to_repo = format!("{}programs/{}/{}/{}", rr, &program_name, &config_name.clone().unwrap(), &fp);
-                if Path::new(&(string_path_to_repo)).exists() {true} else {println!("could not find file {fp}"); false}});
+        for f in v {
+            let pi = repo.get_program_index(program_name.clone()).unwrap();
+            let ci = repo.get_config_index(program_name.clone(), config_name.clone().unwrap()).unwrap();
+            let fi = repo.get_file_index(program_name.clone(), config_name.clone().unwrap(), f.clone());
+            
+            if fi.is_ok() {
+                let c = &repo.managed_programs[pi].conifigurations[ci];
 
-        for f in existant_files {
-            println!("removing file: {}", f.clone());
-            repo.rm_file(program_name.clone(), config_name.clone().unwrap(), f.clone());
+                let c_directory = &c.root;
+
+                let cf_hash = &repo.managed_programs[pi].conifigurations[ci].managed_files[fi.unwrap()].hash;
+
+                let rm_path = format!("{}/{}", c_directory, cf_hash);
+
+                if Path::new(rm_path.as_str()).exists() {
+                    println!("removing file: {}", f.clone());
+                    repo.rm_file(program_name.clone(), config_name.clone().unwrap(), cf_hash.clone());
+                } else {println!("file {} does not exist", f)}
+            } else {println!("")}
+
         }
     }
 }
