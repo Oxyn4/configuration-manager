@@ -20,7 +20,7 @@ impl Program {
         let root_path = std::path::Path::new(&root);
         if !root_path.exists() {
             info!("supplied root path: {} does not exist", root);
-            std::fs::create_dir(root_path).expect("failed to create a new directory for new program");
+            std::fs::create_dir_all(root_path).expect("failed to create a new directory for new program");
 
             info!("program created with root path: {}", root_path.file_name().unwrap().to_owned().into_string().unwrap());
             return Program {

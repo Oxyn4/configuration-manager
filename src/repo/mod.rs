@@ -27,7 +27,7 @@ impl Repository {
     
         let mut managed_programs_init = Vec::new();
 
-        let repo_root_path = std::path::Path::new(&repo_root);
+        let repo_root_path = std::path::Path::new(&repo_root).join("programs/");
         if !repo_root_path.exists() {
             info!("the repository does not exist creating new one");
             let creation_result = std::fs::create_dir_all(repo_root.clone());
@@ -45,7 +45,7 @@ impl Repository {
             }
         }
 
-        let programs_root_path = repo_root_path.join("programs/");
+        let programs_root_path = repo_root_path;
 
         let programs_root_path_it_result = std::fs::read_dir(programs_root_path);
 
