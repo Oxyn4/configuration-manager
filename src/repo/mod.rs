@@ -196,8 +196,8 @@ impl Repository {
         let fi = self.get_file_index_from_hash(program_name, config_name, file_hash).unwrap();
 
         println!("{}", self.managed_programs[pi].conifigurations[ci].get_directory_path() + &self.managed_programs[pi].conifigurations[ci].managed_files[fi].hash);
-        std::fs::remove_file(self.managed_programs[pi].conifigurations[ci].get_directory_path() + &self.managed_programs[pi].conifigurations[ci].managed_files[fi].hash);
-
+        // std::fs::remove_file(self.managed_programs[pi].conifigurations[ci].get_directory_path() + &self.managed_programs[pi].conifigurations[ci].managed_files[fi].hash);
+        std::fs::remove_file(self.managed_programs[pi].conifigurations[ci].managed_files[fi].repo_path.clone());
 
         self.managed_programs[pi].conifigurations[ci].managed_files.remove(fi);
     }
