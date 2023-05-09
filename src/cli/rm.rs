@@ -26,7 +26,7 @@ pub fn rm_command(repo :&mut Repository, program_name : String, config_name : Op
     }
 
     // make sure the file was given and all 
-    let rr = repo.root.clone();
+    // let rr = repo.root.clone();
     if let Some(v) = file {
         for f in v {
             let pi = repo.get_program_index(program_name.clone()).unwrap();

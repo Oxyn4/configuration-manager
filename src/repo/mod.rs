@@ -150,10 +150,11 @@ impl Repository {
 
         let file_name = file_path.file_name().unwrap().to_owned().into_string().unwrap();
 
-        let cf = ConfigFile::new(relitive_file_path).unwrap();
+        let destination = format!("{}programs/{}/{}/{}", self.root.clone(), program_name, config_name, vcs::get_hash_of_file(relitive_file_path.clone()));
+        
+        let cf = ConfigFile::new(relitive_file_path, destination.clone()).unwrap();
 
         // let destination = self.root.clone() + "programs/" + &program_name + "/" + &config_name + "/" + &cf.hash;
-        let destination = format!("{}programs/{}/{}/{}", self.root.clone(), program_name, config_name, cf.hash);
         println!("{}", destination);
 
         // make sure the new file is not already in config

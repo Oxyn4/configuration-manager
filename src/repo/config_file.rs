@@ -3,8 +3,6 @@ use serde::{Serialize, Deserialize};
 
 use log::info;
 
-
-
 use crate::startup::users::*;
 
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
@@ -12,6 +10,7 @@ pub struct ConfigFile {
     #[serde(deserialize_with = "deserialize_dst_path")]
     #[serde(serialize_with = "serialize_dst_path")]
     pub destination_path : String,
+    pub repo_path : String,
     pub hash : String,
 }
 
@@ -48,15 +47,16 @@ where
 }
 
 impl ConfigFile {
-    pub fn new(relitive_file_path : String) -> Option<Self> {
+    pub fn new(relitive_file_path : String, repo_path_init : String) -> Option<Self> {
         let mut current_directory = std::env::current_dir().unwrap();
 
         current_directory.push(relitive_file_path.clone());
 
         if current_directory.exists() {
             info!("new config file {} full path: {}", current_directory.as_path().file_name()?.to_str().unwrap().to_string(), current_directory.as_path().to_str().unwrap().to_string());
-            let new_file =ConfigFile { 
+            let new_file = ConfigFile { 
                 destination_path: current_directory.as_path().to_str().unwrap().to_string(),
+                repo_path : repo_path_init,
                 hash : super::vcs::get_hash_of_file(relitive_file_path),
             };
 
