@@ -6,15 +6,17 @@ pub fn ls(repo : &mut Repository) {
 
     if !repo.managed_programs.is_empty() {
         for program in &repo.managed_programs {
-            println!("{} | {} configurations ", program.name, program.conifigurations.len());
+            println!("{} | {} configurations \n", program.name, program.conifigurations.len());
             
             if !program.conifigurations.is_empty() {
                 for config in &program.conifigurations {
                     println!("{} - {} tracked files", config.name(), config.managed_files.len());
 
                         for f in &config.managed_files {
-                        println!("* {} -> {}", f.file_name(), f.hash);
-                    }
+                            println!("     * {} -> {}", f.file_name(), f.hash);
+                        }
+
+                    println!();
                 } 
             } else {
                 println!("there are no configurations for {}", program.name);
