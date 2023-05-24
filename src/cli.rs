@@ -8,6 +8,9 @@ use rm::rm_command;
 mod ls;
 use ls::ls;
 
+mod switch;
+use switch::switch_command;
+
 use crate::repo::*;
 
 
@@ -44,8 +47,13 @@ fn get_cli() -> clap::Command {
                 .alias("l")
                 .about("list the contents of a repository")                       
         )
-
-    
+        .subcommand(
+            clap::Command::new("switch")
+                .alias("s")
+                .about("switch to a different config for a program")
+                .arg(arg!(<PROGRAM>  "the name of a program to switch for")) 
+                .arg(arg!(<CONFIG> "the name of a config to switch to"))
+        )    
 
 }
 
@@ -120,6 +128,12 @@ pub fn cli(repo : &mut Repository) {
         ("ls", _) => {
 
             ls(repo);
+        }
+        ("switch", sub_matches) => {
+            let program = sub_matches.get_one::<String>("PROGRAM").expect("required"); 
+            let config = sub_matches.get_one::<String>("CONFIG").expect("required");
+
+            switch_command(program.to_string(), config.to_string()); 
         }
         (ext, _) => {
             println!("{ext} is not a valid use of this CLI");
