@@ -52,7 +52,7 @@ impl Program {
 
         Program {
             name: std::path::Path::new(&root).file_name().unwrap().to_owned().into_string().unwrap(), 
-            conifigurations: configurations_init,
+            conifigurations: configurations_init.clone(),
             active_config : configurations_init.len() as isize,
         }
     }
@@ -71,6 +71,7 @@ impl Program {
     }
 
     pub fn switch_active_config(&mut self, config_index : usize) {
+        println!("{}", config_index);
                 
     }
 
