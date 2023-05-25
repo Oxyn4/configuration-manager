@@ -4,7 +4,7 @@ use crate::repo::Repository;
 
 
 pub fn switch_command(repo : &mut Repository, program : String, config : String) {
-    println!("switch called with: {}/{}", program, config);
+    println!("switching to config: {}/{}", program, config);
 
     let pi = repo.get_program_index(program.clone()).expect("failed to get program index");
 

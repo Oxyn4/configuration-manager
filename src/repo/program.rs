@@ -53,7 +53,7 @@ impl Program {
         Program {
             name: std::path::Path::new(&root).file_name().unwrap().to_owned().into_string().unwrap(), 
             conifigurations: configurations_init.clone(),
-            active_config : configurations_init.len() as isize,
+            active_config : (configurations_init.len()-1) as isize,
         }
     }
     
@@ -71,7 +71,19 @@ impl Program {
     }
 
     pub fn switch_active_config(&mut self, config_index : usize) {
-        println!("{}", config_index);
+        if self.active_config == config_index as isize {
+            println!("{} is already the active configuration", self.conifigurations[self.active_config as usize].name())
+        }
+
+        // -1 means no active config
+        if self.active_config != -1 {
+            self.conifigurations[self.active_config as usize].undeploy();
+        }
+
+        self.active_config = config_index as isize;
+
+        self.conifigurations[config_index].deploy();
+
                 
     }
 

@@ -138,6 +138,16 @@ impl Config {
         manifest_d.write_all(serialised_file_for_manifest.as_bytes()).expect("failed to write to manifest");       
     }
 
+    pub fn deploy(&self) {
+        println!("deploying {}", self.name());
+
+    }
+
+    pub fn undeploy(&self) {
+        println!("undeploying {}", self.name());
+
+    }
+
     pub fn from_manifest(path : String) -> Option<Self> {
         if !std::path::Path::new(&path).exists() {
             return None; 
