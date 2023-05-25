@@ -16,6 +16,7 @@ pub struct Config {
     // pub program_name : String,
     pub root : String,
     pub managed_files : Vec<ConfigFile>,
+    pub deployed : bool,
 }
 
 impl Config {
@@ -31,6 +32,7 @@ impl Config {
                 // program_name : root_path.parent().unwrap().to_owned().file_name().unwrap().to_owned().into_string().unwrap(),
                 root : root_init,
                 managed_files : Vec::new(),
+                deployed : false,
             })
         }
 
@@ -138,8 +140,10 @@ impl Config {
         manifest_d.write_all(serialised_file_for_manifest.as_bytes()).expect("failed to write to manifest");       
     }
 
-    pub fn deploy(&self) {
+    pub fn deploy(&mut self) {
         println!("deploying {}", self.name());
+
+        self.deployed = true;
 
         for f in &self.managed_files {
             std::fs::copy(f.repo_path.clone(), f.destination_path.clone());
@@ -147,8 +151,10 @@ impl Config {
 
     }
 
-    pub fn undeploy(&self) {
+    pub fn undeploy(&mut self) {
         println!("undeploying {}", self.name());
+
+        self.deployed = false;
 
         for f in &self.managed_files {
             std::fs::remove_file(f.destination_path.clone());

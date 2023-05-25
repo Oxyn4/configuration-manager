@@ -50,10 +50,17 @@ impl Program {
 
         info!("created program with name: {}", std::path::Path::new(&root.clone()).file_name().unwrap().to_owned().into_string().unwrap());
 
+        let mut deployed_init : isize = -1;
+        for (i, c) in configurations_init.iter().enumerate() {
+            if c.deployed == true {
+                deployed_init = i as isize;
+            }
+        }
+
         Program {
             name: std::path::Path::new(&root).file_name().unwrap().to_owned().into_string().unwrap(), 
             conifigurations: configurations_init.clone(),
-            active_config : (configurations_init.len()-1) as isize,
+            active_config : deployed_init,
         }
     }
     
@@ -71,8 +78,13 @@ impl Program {
     }
 
     pub fn switch_active_config(&mut self, config_index : usize) {
+        println!("config: {}", self.name);
+        println!("config index: {}", config_index);
+        println!("as isize: {}", config_index as isize);
+        println!("active: {}", self.active_config);
         if self.active_config == config_index as isize {
-            println!("{} is already the active configuration", self.conifigurations[self.active_config as usize].name())
+            println!("{} is already the active configuration", self.conifigurations[self.active_config as usize].name());
+            return;
         }
 
         // -1 means no active config
@@ -80,11 +92,12 @@ impl Program {
             self.conifigurations[self.active_config as usize].undeploy();
         }
 
+        println!("{}", self.active_config);
         self.active_config = config_index as isize;
 
-        self.conifigurations[config_index].deploy();
+        println!("{}", self.active_config);
 
-                
+        self.conifigurations[config_index].deploy();
     }
 
     pub fn get_directory_path(&self) -> String {
