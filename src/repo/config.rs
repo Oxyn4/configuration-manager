@@ -141,10 +141,18 @@ impl Config {
     pub fn deploy(&self) {
         println!("deploying {}", self.name());
 
+        for f in &self.managed_files {
+            std::fs::copy(f.repo_path.clone(), f.destination_path.clone());
+        }
+
     }
 
     pub fn undeploy(&self) {
         println!("undeploying {}", self.name());
+
+        for f in &self.managed_files {
+            std::fs::remove_file(f.destination_path.clone());
+        }
 
     }
 
