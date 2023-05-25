@@ -5,13 +5,12 @@ use log::{info, warn};
 
 use crate::startup::users::*;
 
-// 
-// ~/.conman/pr
-// ograms/NAME 
+// ~/.conman/programs/NAME 
 #[derive(Clone, PartialEq)]
 pub struct Program {
     pub name : String,
     pub conifigurations : Vec<Config>,
+    pub active_config : isize,
 }
 
 impl Program {
@@ -25,7 +24,8 @@ impl Program {
             info!("program created with root path: {}", root_path.file_name().unwrap().to_owned().into_string().unwrap());
             return Program {
                 name : root_path.file_name().unwrap().to_owned().into_string().unwrap(),
-                conifigurations : Vec::new()
+                conifigurations : Vec::new(),
+                active_config : -1
             };
         }
 
@@ -50,7 +50,11 @@ impl Program {
 
         info!("created program with name: {}", std::path::Path::new(&root.clone()).file_name().unwrap().to_owned().into_string().unwrap());
 
-        Program { name: std::path::Path::new(&root).file_name().unwrap().to_owned().into_string().unwrap(), conifigurations: configurations_init }
+        Program {
+            name: std::path::Path::new(&root).file_name().unwrap().to_owned().into_string().unwrap(), 
+            conifigurations: configurations_init,
+            active_config : configurations_init.len() as isize,
+        }
     }
     
     pub fn does_manifest_exist(&self) -> bool {
@@ -64,6 +68,10 @@ impl Program {
         warn!("program: {} missing manifest conman.json", self.name);
 
         false
+    }
+
+    pub fn switch_active_config(&mut self, config_index : usize) {
+                
     }
 
     pub fn get_directory_path(&self) -> String {

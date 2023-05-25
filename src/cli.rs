@@ -133,7 +133,7 @@ pub fn cli(repo : &mut Repository) {
             let program = sub_matches.get_one::<String>("PROGRAM").expect("required"); 
             let config = sub_matches.get_one::<String>("CONFIG").expect("required");
 
-            switch_command(program.to_string(), config.to_string()); 
+            switch_command(repo, program.to_string(), config.to_string()); 
         }
         (ext, _) => {
             println!("{ext} is not a valid use of this CLI");
