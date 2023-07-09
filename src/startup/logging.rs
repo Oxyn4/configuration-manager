@@ -1,7 +1,7 @@
 
 use crate::startup::*;
 
-pub fn setup_log_file(conman_mode : Mode) -> std::fs::File {
+pub fn new_log_file_path(conman_mode : Mode) -> std::string::String {
     let current_time = chrono::Utc::now();
     let date = current_time.date_naive().to_string();
     let mut time = current_time.time().to_string();
@@ -19,7 +19,9 @@ pub fn setup_log_file(conman_mode : Mode) -> std::fs::File {
 
             log_dir.push("conman_".to_owned() + &date + "_" + &time + ".log");
 
-            std::fs::File::create(log_dir).unwrap()
+            // std::fs::File::create(log_dir).unwrap()
+
+            return log_dir.as_os_str().to_str().unwrap().to_string();
         },
         Mode::Portable => {
             let mut exe_dir = std::env::current_exe().unwrap().parent().unwrap().to_path_buf();
@@ -32,17 +34,42 @@ pub fn setup_log_file(conman_mode : Mode) -> std::fs::File {
 
             exe_dir.push("conman_".to_owned() + &date + "_" + &time + ".log");
 
-            std::fs::File::create(exe_dir).unwrap()
+            // std::fs::File::create(exe_dir).unwrap()
 
+            return exe_dir.as_os_str().to_str().unwrap().to_string();
         }
     }
+}
+
+fn return_older_log_file(file1 : String, file2 : String) {
+    let log_file1_components = file1.split("_");
+    let log_file2_components = file2.split("_");
+    print!("{:?}", log_file1_components);
+    print!("{:?}", log_file2_components);
+}
+
+pub fn logging_teardown(mode : &Mode) {
+    let log_path = std::path::Path::new(&new_log_file_path(mode.clone()))
+        .parent().unwrap()
+        .as_os_str().to_str().unwrap()
+        .to_string();
+
+    let log_files = std::fs::read_dir(std::path::Path::new(&log_path)).unwrap().collect::<Result<Vec<_>, std::io::Error>>().unwrap();
+
+    // 21 cause there is a log file from this program instance
+    if log_files.len() > 21 {
+        print!("log files need to be cleared! {}: {} log files\n", log_path, log_files.len());
+    }
+    
+    let sorted_log_files : Vec<std::string::String> = Vec::new();
+
+    
 }
 
 pub fn logging_init(mode : &Mode) {
     simplelog::WriteLogger::init(
         simplelog::LevelFilter::max(),
         simplelog::Config::default(),
-        setup_log_file(mode.clone())
+        std::fs::File::create(new_log_file_path(mode.clone())).unwrap()
     ).expect("failed to intialise logger!");
-
 }

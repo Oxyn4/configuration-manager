@@ -33,5 +33,7 @@ fn main() -> std::process::ExitCode {
    
     repo.write_manifests();
 
+    startup::logging::logging_teardown(&mode);
+
     std::process::ExitCode::SUCCESS
 }
