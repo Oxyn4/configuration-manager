@@ -1,4 +1,6 @@
 
+use std::fs::DirEntry;
+
 use crate::startup::*;
 
 pub fn new_log_file_path(conman_mode : Mode) -> std::string::String {
@@ -41,29 +43,76 @@ pub fn new_log_file_path(conman_mode : Mode) -> std::string::String {
     }
 }
 
-fn return_older_log_file(file1 : String, file2 : String) {
-    let log_file1_components = file1.split("_");
-    let log_file2_components = file2.split("_");
-    print!("{:?}", log_file1_components);
-    print!("{:?}", log_file2_components);
-}
-
 pub fn logging_teardown(mode : &Mode) {
     let log_path = std::path::Path::new(&new_log_file_path(mode.clone()))
         .parent().unwrap()
         .as_os_str().to_str().unwrap()
         .to_string();
 
-    let log_files = std::fs::read_dir(std::path::Path::new(&log_path)).unwrap().collect::<Result<Vec<_>, std::io::Error>>().unwrap();
+    let mut log_files = std::fs::read_dir(std::path::Path::new(&log_path)).unwrap().collect::<Result<Vec<_>, std::io::Error>>().unwrap();
 
     // 21 cause there is a log file from this program instance
     if log_files.len() > 21 {
         print!("log files need to be cleared! {}: {} log files\n", log_path, log_files.len());
     }
     
-    let sorted_log_files : Vec<std::string::String> = Vec::new();
+    log_files.sort_by(|a, b| {
+        let a = a.path().to_str().unwrap().to_string();
+        let b = b.path().to_str().unwrap().to_string();
+        let a_components : Vec<String> = a.split("_")
+            .map(|a| {a.to_string()})
+            .collect();
+        
+        let b_components : Vec<String> = b.split("_")
+            .map(|b| {b.to_string()})
+            .collect();
+        
+        // print!("a: {:?}\n", a_components);
+        // print!("b: {:?}\n", b_components);
 
-    
+        let a_date_components : Vec<u32> = a_components[1].split('-').map(|a| {return a.parse::<u32>().unwrap()}).collect();
+        let b_date_components : Vec<u32> = b_components[1].split('-').map(|b| {return b.parse::<u32>().unwrap()}).collect();
+
+        let LOG_FILE_OLDER = std::cmp::Ordering::Less;
+        let LOG_FILE_YOUNGER = std::cmp::Ordering::Greater;
+        
+        // 2021 < 2023
+        if a_date_components[0] < b_date_components[0] {
+            return LOG_FILE_OLDER;
+        } else if a_date_components[0] == b_date_components[0] {
+            if a_date_components[1] < b_date_components[1] {
+                return LOG_FILE_OLDER;
+            } else if a_date_components[1] == b_date_components[1] {
+                if a_date_components[2] < b_date_components[2] {
+                    return LOG_FILE_OLDER;
+                } else {return LOG_FILE_YOUNGER;}
+            } else {return LOG_FILE_YOUNGER;}
+        } else {return LOG_FILE_YOUNGER;} 
+        
+        a_components[2].replace(".log", "");
+        b_components[2].replace(".log", "");
+
+        let a_time_components : Vec<u32> = a_components[2].split(':').map(|a| {return a.parse::<u32>().unwrap()}).collect();
+        let b_time_components : Vec<u32> = b_components[2].split(':').map(|b| {return b.parse::<u32>().unwrap()}).collect();
+
+        //hours
+        // 00-23:59
+        if a_time_components[0] < b_time_components[0] {
+            return LOG_FILE_OLDER;
+        } else if a_time_components[0] == b_time_components[0] {
+            if a_time_components[1] < b_time_components[1] {
+                return LOG_FILE_OLDER;
+            } else if  a_time_components[1] == b_time_components[1] {
+                if a_time_components[2] < b_time_components[2] {
+                    return LOG_FILE_OLDER;
+                } else {return LOG_FILE_YOUNGER;}
+            } else {return LOG_FILE_YOUNGER;}
+        } else {return  LOG_FILE_YOUNGER;}
+    });
+
+    for d in 0..(log_files.len()-20) {
+        std::fs::remove_file(log_files[d].path());
+    }
 }
 
 pub fn logging_init(mode : &Mode) {
